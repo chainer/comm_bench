@@ -8,6 +8,8 @@ Akiba and maintained by developers.
   `allreduce_grad` performance stats, with ResNet gradients
 - comm_bench2: Microbenchmark to test Chainer's communicators'
   `allreduce_grad` performance in timeseries plot, with ResNet gradients
+- comm_bench3: Microbenchmark to test raw latency of `allreduce`
+  of MPI and NCCL
 
 ## Usage example & Prerequisites
 

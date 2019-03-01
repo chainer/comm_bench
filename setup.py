@@ -26,7 +26,9 @@ setup(name='comm_bench',
       install_requires=['mpi4py', 'chainer', 'chainercv', 'numpy', 'matplotlib','tqdm'],
       entry_points={'console_scripts':
                     ['comm_bench1=comm_bench.bench1:main',
-                     'comm_bench2=comm_bench.bench2:main',]},
+                     'comm_bench2=comm_bench.bench2:main',
+                     'comm_bench3=comm_bench.bench3:main',
+                    ]},
       python_requires='>=3.5',
       classifiers=[
                 'Development Status :: 3 - Alpha',
