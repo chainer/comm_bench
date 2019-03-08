@@ -62,6 +62,8 @@ def main():
 
     if args.communicator_names is None:
         communicator_names = default_com_names
+    else:
+        communicator_names = communicator_names.split(',')
     for name in communicator_names:
         assert name in possible_comm_names
 
