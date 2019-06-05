@@ -30,7 +30,7 @@ import sys
 possible_comm_names = ['flat', 'hierarchical', 'two_dimensional', 'naive', 'pure_nccl', 'pure_nccl_fp16']
 
 def main():
-    parser = argparse.ArgumentParser('Communicator Benchmark 1: allreduce_grad latency stats')
+    parser = argparse.ArgumentParser('Communicator Benchmark 2: allreduce_grad latency stats in timeseries')
     parser.add_argument('--model', default='resnet50', help="Type of model",
                         choices=['resnet50', 'resnet101', 'resnet152'])
     parser.add_argument('--communicator_name', type=str,
@@ -45,6 +45,8 @@ def main():
                         type=float, default=0)
     parser.add_argument('--plot', help="Plot output filename",
                         default='plot.png')
+    parser.add_argument('--log', help="Log output filename",
+                        default='bench2.log')
     args = parser.parse_args()
     
     model = setup_model(args.model, args.label_num)
@@ -110,6 +112,12 @@ def main():
         plt.ylabel('latency (sec)')
         plt.title('latencies of allreduce_grad by time plot')
         plt.savefig(args.plot)
+
+        with open(args.log, 'w') as fp:
+            fp.write('trial\tstart\tduration\n')
+            for i in range(len(times)):
+                start, duration = times[i]
+                fp.write('{}\t{}\t{}\n'.format(i, start, duration))
 
 
 if __name__ == '__main__':
