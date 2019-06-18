@@ -31,13 +31,6 @@ except:
 possible_comm_names = ['flat', 'hierarchical', 'two_dimensional', 'naive', 'pure_nccl', 'pure_nccl_fp16']
 default_com_names = ['pure_nccl', 'pure_nccl_fp16']
     
-def setup_comm(name):
-    kwargs = {}
-    if name == 'pure_nccl_fp16':
-        kwargs['allreduce_grad_dtype'] = np.float16
-    comm = chainermn.create_communicator(name, **kwargs)
-    return comm
-
 from . import setup_comm, setup_model, update_once
 
 def main():

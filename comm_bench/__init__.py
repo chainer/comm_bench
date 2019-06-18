@@ -10,6 +10,7 @@ def setup_comm(name):
     if name == 'pure_nccl_fp16':
         name = 'pure_nccl'
         kwargs['allreduce_grad_dtype'] = np.float16
+        kwargs['batched_copy'] = True
     comm = chainermn.create_communicator(name, **kwargs)
     return comm
 
