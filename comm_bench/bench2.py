@@ -1,19 +1,22 @@
+from . import CommBench, setup_comm, setup_model
+from . import update_once, print_experimental_env
+
 import argparse
+from logging import DEBUG
+from logging import getLogger
+from logging import StreamHandler
+
+logger = getLogger(__name__)
+handler = StreamHandler()
+handler.setLevel(DEBUG)
+logger.setLevel(DEBUG)
+logger.addHandler(handler)
 
 try:
-    from logging import DEBUG
-    from logging import getLogger
-    from logging import StreamHandler
-    import time
 
     import chainer
     import mpi4py.MPI
 
-    logger = getLogger(__name__)
-    handler = StreamHandler()
-    handler.setLevel(DEBUG)
-    logger.setLevel(DEBUG)
-    logger.addHandler(handler)
 
 except:
     import socket
@@ -22,9 +25,6 @@ except:
     traceback.print_exc()
     raise
 
-from . import setup_comm, setup_model, update_once, print_experimental_env
-from tqdm import tqdm
-
 
 def main():
     parser = argparse.ArgumentParser('Communicator Benchmark 2: '
@@ -32,8 +32,9 @@ def main():
                                      ' timeseries')
     parser.add_argument('--model', default='resnet50', help="Type of model",
                         choices=['resnet50', 'resnet101', 'resnet152'])
-    parser.add_argument('--communicator_name', type=str,
-                        help="Communicator name", default='pure_nccl')
+    parser.add_argument('--communicator_name', '--comm',
+                        type=str, help="Communicator name",
+                        default='pure_nccl')
     parser.add_argument('--use_gpu', '-g', help='Use GPU',
                         action='store_true', default=True)
     parser.add_argument('--label_num', help='Number of labels',
@@ -48,7 +49,6 @@ def main():
                         default='bench2.log')
     args = parser.parse_args()
 
-    model = setup_model(args.model, args.label_num)
     label_num = args.label_num
     communicator_name = args.communicator_name
     use_gpu = args.use_gpu
@@ -57,9 +57,6 @@ def main():
     interval = args.interval
 
     model = setup_model(model_name, label_num)
-
-    mpi_comm = mpi4py.MPI.COMM_WORLD
-    cuda_stream = chainer.cuda.Stream.null
     comm = setup_comm(communicator_name)
 
     if use_gpu:
@@ -73,39 +70,12 @@ def main():
         print("Communicator: ", communicator_name)
         print("Interval(sec):", interval)
 
-    comm.allreduce_grad(model)
-
-    times = []
-    pbar = tqdm(range(n_trials))
-    for trial in pbar:
-        cuda_stream.synchronize()
-        mpi_comm.Barrier()
-
-        time_start = time.time()
-        comm.allreduce_grad(model)
-        cuda_stream.synchronize()
-        mpi_comm.Barrier()
-        time_end = time.time()
-        pbar.set_description("{}:\tstart={}, duration={}sec"
-                             .format(trial, time_start, time_end - time_start))
-
-        times.append((time_start, time_end - time_start))
-        time.sleep(interval)
+    comm_bench = CommBench(communicator_name, n_trials, interval)
+    comm_bench.benchmark(model)
 
     if comm.rank == 0:
-        import matplotlib.pyplot as plt
-        x, y = zip(*times)
-        plt.plot(x, y, '-')
-        plt.xlabel('time (sec)')
-        plt.ylabel('latency (sec)')
-        plt.title('latencies of allreduce_grad by time plot')
-        plt.savefig(args.plot)
-
-        with open(args.log, 'w') as fp:
-            fp.write('trial\tstart\tduration\n')
-            for i in range(len(times)):
-                start, duration = times[i]
-                fp.write('{}\t{}\t{}\n'.format(i, start, duration))
+        comm_bench.plot_result(args.plot)
+        comm_bench.save_result(args.log)
         logger.info("Saved the graph to %s, TSV to %s",
                     args.plot, args.log)
 

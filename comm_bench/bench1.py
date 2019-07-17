@@ -35,7 +35,7 @@ def main():
                                      ' allreduce_grad latency stats')
     parser.add_argument('--model', default='resnet50', help="Type of model",
                         choices=['resnet50', 'resnet101', 'resnet152'])
-    parser.add_argument('--communicator_names', type=str,
+    parser.add_argument('--communicator_names', '--comm', type=str,
                         help="Communicator names")
     parser.add_argument('--use_gpu', '-g', help='Use GPU',
                         action='store_true', default=True)

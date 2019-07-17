@@ -95,7 +95,7 @@ class CommBench(object):
             time_end = time.time()
 
             if trial > 0:
-                times.append(time_end - time_start)
+                times.append((time_end, time_end - time_start))
 
             if self.verbose and self.comm.rank == 0:
                 print("Run #{}:\t{}".format(trial, time_end - time_start))
@@ -105,7 +105,7 @@ class CommBench(object):
         self.times = times
 
     def pp_result(self):
-        times = self.times
+        _, times = zip(*(self.times))
         if self.comm.rank == 0:
             times = np.asarray(times)
             print('{:<15}{:>8.4f}{:>8.4f}{:>8.4f}{:>8.4f}{:>8.4f}'
@@ -113,3 +113,19 @@ class CommBench(object):
                       self.comm_name, np.mean(times), np.median(times),
                       np.min(times), np.max(times), np.std(times)))
             # TODO: plot histogram here?
+
+    def plot_result(self, filename):
+        import matplotlib.pyplot as plt
+        x, y = zip(*(self.times))
+        plt.plot(x, y, '-')
+        plt.xlabel('time (sec)')
+        plt.ylabel('latency (sec)')
+        plt.title('latencies of allreduce_grad by time plot')
+        plt.savefig(filename)
+
+    def save_result(self, filename):
+        with open(filename, 'w') as fp:
+            fp.write('trial\tstart\tduration\n')
+            for i in range(len(self.times)):
+                start, duration = self.times[i]
+                fp.write('{}\t{}\t{}\n'.format(i, start, duration))
