@@ -1,3 +1,4 @@
+import socket
 import time
 
 import chainer
@@ -48,6 +49,21 @@ def update_once(model):
     opt.update()
 
 
+def print_experimental_env(comm, model, model_name, n_trials, logger):
+    hosts = comm.gather_obj((comm.rank, socket.gethostname()))
+    if comm.rank == 0:
+        logger.info('Process map: {}'.format(hosts))
+        logger.info('Workers: Total={}, Inter={}, Intra={}'.format(
+            comm.size, comm.inter_size, comm.intra_size))
+
+        n_elems_total = sum(param.grad.size for param in model.params())
+        n_bytes_total = n_elems_total * 4
+        logger.info('Model: {} ({} params, {} bytes)'.format(
+            model_name, len(list(model.params())), n_bytes_total))
+        logger.info('Trials: {}'.format(n_trials))
+        logger.info('-----------------------------------------------')
+
+
 class CommBench(object):
     def __init__(self, comm_name, n_trials=100, interval=0,
                  verbose=False):
@@ -65,6 +81,8 @@ class CommBench(object):
         mpi_comm = self.comm.mpi_comm
         cuda_stream = chainer.cuda.Stream.null
         n_trials = self.n_trials
+        # First allreduce_grad is for bcast_data
+        self.comm.allreduce_grad(model)
 
         for trial in range(n_trials + 1):
             cuda_stream.synchronize()
@@ -79,7 +97,7 @@ class CommBench(object):
             if trial > 0:
                 times.append(time_end - time_start)
 
-            if self.verbose:
+            if self.verbose and self.comm.rank == 0:
                 print("Run #{}:\t{}".format(trial, time_end - time_start))
             if self.interval:
                 time.sleep(self.interval)

@@ -1,4 +1,4 @@
-from . import CommBench, setup_model, update_once
+from . import CommBench, setup_model, update_once, print_experimental_env
 
 import argparse
 import socket
@@ -68,21 +68,11 @@ def main():
         chainer.cuda.get_device(comm.intra_rank).use()
         model.to_gpu()
     update_once(model)
-
-    hosts = comm.gather_obj((comm.rank, socket.gethostname()))
+    print_experimental_env(comm, model, model_name, n_trials, logger)
 
     if comm.rank == 0:
-        print('Process map:', hosts)
-        print("Communicator names:", communicator_names)
+        logger.info("Communicator names: {}".format(communicator_names))
 
-        logger.info('Workers: Total={}, Inter={}, Intra={}'.format(
-            comm.size, comm.inter_size, comm.intra_size))
-
-        n_elems_total = sum(param.grad.size for param in model.params())
-        n_bytes_total = n_elems_total * 4
-        logger.info('Model: {} ({} params, {} bytes)'.format(
-            model_name, len(list(model.params())), n_bytes_total))
-        logger.info('Trials: {}'.format(n_trials))
         logger.info('-----------------------------------------------')
         logger.info('Communicator     Mean    Median  Min     Max     Std')
 

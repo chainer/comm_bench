@@ -22,7 +22,7 @@ except:
     traceback.print_exc()
     raise
 
-from . import setup_comm, setup_model, update_once
+from . import setup_comm, setup_model, update_once, print_experimental_env
 from tqdm import tqdm
 
 
@@ -67,23 +67,11 @@ def main():
         model.to_gpu()
     update_once(model)
 
-    import socket
-    hosts = comm.gather_obj({comm.rank: socket.gethostname()})
+    print_experimental_env(comm, model, model_name, n_trials, logger)
 
     if comm.rank == 0:
-        print("Communicator name:", communicator_name)
+        print("Communicator: ", communicator_name)
         print("Interval(sec):", interval)
-
-        print(hosts)
-
-        logger.info('Workers: Total={}, Inter={}, Intra={}'.format(
-            comm.size, comm.inter_size, comm.intra_size))
-
-        n_elems_total = sum(param.grad.size for param in model.params())
-        n_bytes_total = n_elems_total * 4
-        logger.info('Model: {} ({} params, {} bytes)'.format(
-            model_name, len(list(model.params())), n_bytes_total))
-        logger.info('Trials: {}'.format(n_trials))
 
     comm.allreduce_grad(model)
 
@@ -118,6 +106,8 @@ def main():
             for i in range(len(times)):
                 start, duration = times[i]
                 fp.write('{}\t{}\t{}\n'.format(i, start, duration))
+        logger.info("Saved the graph to %s, TSV to %s",
+                    args.plot, args.log)
 
 
 if __name__ == '__main__':
