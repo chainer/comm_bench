@@ -7,9 +7,7 @@ try:
     import time
 
     import chainer
-    import chainermn
     import mpi4py.MPI
-    import numpy as np
 
     logger = getLogger(__name__)
     handler = StreamHandler()
@@ -22,15 +20,16 @@ except:
     print(mpi4py.MPI.COMM_WORLD.rank, socket.gethostname())
     import traceback
     traceback.print_exc()
+    raise
 
 from . import setup_comm, setup_model, update_once
 from tqdm import tqdm
-import sys
 
-possible_comm_names = ['flat', 'hierarchical', 'two_dimensional', 'naive', 'pure_nccl', 'pure_nccl_fp16']
 
 def main():
-    parser = argparse.ArgumentParser('Communicator Benchmark 2: allreduce_grad latency stats in timeseries')
+    parser = argparse.ArgumentParser('Communicator Benchmark 2: '
+                                     'allreduce_grad latency stats in'
+                                     ' timeseries')
     parser.add_argument('--model', default='resnet50', help="Type of model",
                         choices=['resnet50', 'resnet101', 'resnet152'])
     parser.add_argument('--communicator_name', type=str,
@@ -48,7 +47,7 @@ def main():
     parser.add_argument('--log', help="Log output filename",
                         default='bench2.log')
     args = parser.parse_args()
-    
+
     model = setup_model(args.model, args.label_num)
     label_num = args.label_num
     communicator_name = args.communicator_name
@@ -99,7 +98,8 @@ def main():
         cuda_stream.synchronize()
         mpi_comm.Barrier()
         time_end = time.time()
-        pbar.set_description("{}:\tstart={}, duration={}sec".format(trial, time_start, time_end - time_start))
+        pbar.set_description("{}:\tstart={}, duration={}sec"
+                             .format(trial, time_start, time_end - time_start))
 
         times.append((time_start, time_end - time_start))
         time.sleep(interval)

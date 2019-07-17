@@ -1,4 +1,3 @@
-import argparse
 import numpy as np
 import chainer
 
@@ -11,8 +10,7 @@ from cupy.cuda import nccl
 import ctypes
 
 
-
-def array_to_buffer_object(array):
+def array_to_buffer_object(array, xp):
     array = xp.ascontiguousarray(array)
     xp = chainer.backend.get_array_module(array)
 
@@ -29,7 +27,7 @@ def mpi_allreduce(comm, a):
     comm.mpi_comm.Allreduce(mpi4py.MPI.IN_PLACE, array_to_buffer_object(a))
 
 
-def nccl_allreduce(comm, a):
+def nccl_allreduce(comm, a, c):
     stream = chainer.cuda.Stream.null
     if c.dtype == np.float32:
         t = nccl.NCCL_FLOAT
