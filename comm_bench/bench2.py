@@ -70,7 +70,8 @@ def main():
         print("Communicator: ", communicator_name)
         print("Interval(sec):", interval)
 
-    comm_bench = CommBench(communicator_name, n_trials, interval)
+    comm_bench = CommBench(communicator_name, n_trials, interval,
+                           comm=comm)
     comm_bench.benchmark(model)
 
     if comm.rank == 0:

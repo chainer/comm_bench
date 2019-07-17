@@ -66,8 +66,8 @@ def print_experimental_env(comm, model, model_name, n_trials, logger):
 
 class CommBench(object):
     def __init__(self, comm_name, n_trials=100, interval=0,
-                 verbose=False):
-        self.comm = setup_comm(comm_name)
+                 verbose=False, comm=None):
+        self.comm = setup_comm(comm_name) if comm is None else comm
         self.comm_name = comm_name
         assert n_trials > 0
         self.n_trials = n_trials
