@@ -66,7 +66,7 @@ def print_experimental_env(comm, model, model_name, n_trials, logger):
 
 class CommBench(object):
     def __init__(self, comm_name, n_trials=100, interval=0,
-                 verbose=False, comm=None):
+                 verbose=False, comm=None, trace=None):
         self.comm = setup_comm(comm_name) if comm is None else comm
         self.comm_name = comm_name
         assert n_trials > 0
@@ -75,6 +75,10 @@ class CommBench(object):
         assert interval >= 0
         self.interval = interval
         self.verbose = verbose
+
+        self.trace = trace
+        if trace:
+            comm.set_config('trace_latency', out=trace)
 
     def benchmark(self, model):
         times = []

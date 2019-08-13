@@ -47,6 +47,8 @@ def main():
                         type=int, default=0)
     parser.add_argument('--verbose', '-v', action='store_true',
                         help="Verbose mode to see each latency")
+    parser.add_argument('--trace', help='Trace directory path',
+                        default=None)
     args = parser.parse_args()
 
     model = setup_model(args.model, args.label_num)
@@ -78,7 +80,7 @@ def main():
 
     for communicator_name in communicator_names:
         bench = CommBench(communicator_name, n_trials,
-                          args.interval, args.verbose)
+                          args.interval, args.verbose, trace=args.trace)
         bench.benchmark(model)
         bench.pp_result()
 
