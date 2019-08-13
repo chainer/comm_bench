@@ -23,11 +23,13 @@ setup(name='comm_bench',
       long_description=long_description,
       packages=find_packages(exclude=['contrib', 'docs', 'tests']),
 
-      install_requires=['mpi4py', 'chainer', 'chainercv', 'numpy', 'matplotlib','tqdm'],
+      install_requires=['mpi4py', 'chainer', 'chainercv', 'numpy', 'matplotlib','tqdm',
+                        'pandas'],
       entry_points={'console_scripts':
                     ['comm_bench1=comm_bench.bench1:main',
                      'comm_bench2=comm_bench.bench2:main',
                      'comm_bench3=comm_bench.bench3:main',
+                     'allreduce_latency_stats=comm_bench.allreduce_latency_stats:main',
                     ]},
       python_requires='>=3.5',
       classifiers=[
